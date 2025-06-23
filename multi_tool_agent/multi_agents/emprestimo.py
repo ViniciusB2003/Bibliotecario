@@ -1,45 +1,32 @@
 import datetime
+import sqlite3
 from zoneinfo import ZoneInfo
 from google.adk.agents import Agent
 
-# Acervo da biblioteca. Subistituir pelo banco depois.
-acervo_biblioteca = {
-    "O Senhor dos Anéis": {
-        "autor": "J.R.R. Tolkien", 
-        "disponibilidade": True,
-        "exemplares_total": 3,
-        "exemplares_disponiveis": 2,
-        "isbn": "978-0544003415"
-    },
-    "1984": {
-        "autor": "George Orwell", 
-        "disponibilidade": False,
-        "exemplares_total": 2,
-        "exemplares_disponiveis": 0,
-        "isbn": "978-0452284234"
-    },
-    "Dom Casmurro": {
-        "autor": "Machado de Assis", 
-        "disponibilidade": True,
-        "exemplares_total": 4,
-        "exemplares_disponiveis": 3,
-        "isbn": "978-8525406958"
-    },
-    "Harry Potter e a Pedra Filosofal": {
-        "autor": "J.K. Rowling",
-        "disponibilidade": True,
-        "exemplares_total": 5,
-        "exemplares_disponiveis": 4,
-        "isbn": "978-8532511010"
-    },
-    "O Pequeno Príncipe": {
-        "autor": "Antoine de Saint-Exupéry",
-        "disponibilidade": True,
-        "exemplares_total": 6,
-        "exemplares_disponiveis": 5,
-        "isbn": "978-8595081413"
-    }
-}
+# Função para obter dados do banco no mesmo formato do dicionário
+def obter_acervo_do_banco(db_path="biblioteca.db"):
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT titulo, autor, isbn, exemplares_total, exemplares_disponiveis,
+                   (exemplares_disponiveis > 0) as disponibilidade
+            FROM livros
+        ''')
+        
+        acervo = {}
+        for row in cursor.fetchall():
+            titulo, autor, isbn, total, disponiveis, disponibilidade = row
+            acervo[titulo] = {
+                "autor": autor,
+                "disponibilidade": bool(disponibilidade),
+                "exemplares_total": total,
+                "exemplares_disponiveis": disponiveis,
+                "isbn": isbn
+            }
+        return acervo
+
+# Acesso os livros do banco:
+acervo_biblioteca = obter_acervo_do_banco()
 
 # Registro de empréstimos
 emprestimos_ativos = {}
@@ -99,7 +86,7 @@ def realizar_emprestimo(nome_livro: str, nome_usuario: str, dias_emprestimo: int
             "error_message": f"Livro '{nome_livro}' não está disponível para empréstimo no momento."
         }
     
-    # Verificar se o usuário já tem este livro emprestado
+    # Verifica se o usuário já tem o livro solicitado emprestado emprestado
     chave_emprestimo = f"{nome_usuario}_{nome_livro}"
     if chave_emprestimo in emprestimos_ativos:
         return {
@@ -107,16 +94,16 @@ def realizar_emprestimo(nome_livro: str, nome_usuario: str, dias_emprestimo: int
             "error_message": f"Usuário '{nome_usuario}' já possui o livro '{nome_livro}' emprestado."
         }
     
-    # Realizar o empréstimo
+    # Realiza o empréstimo
     data_emprestimo = datetime.datetime.now()
     data_devolucao = data_emprestimo + datetime.timedelta(days=dias_emprestimo)
     
-    # Atualizar disponibilidade no acervo
+    # Atualiza a disponibilidade no acervo
     acervo_biblioteca[nome_livro]["exemplares_disponiveis"] -= 1
     if acervo_biblioteca[nome_livro]["exemplares_disponiveis"] == 0:
         acervo_biblioteca[nome_livro]["disponibilidade"] = False
     
-    # Registrar empréstimo
+    # Registra o empréstimo
     emprestimos_ativos[chave_emprestimo] = {
         "nome_livro": nome_livro,
         "nome_usuario": nome_usuario,
@@ -160,14 +147,14 @@ def devolver_livro(nome_livro: str, nome_usuario: str) -> dict:
     data_devolucao_real = datetime.datetime.now()
     data_devolucao_prevista = emprestimo["data_devolucao"]
     
-    # Calcular atraso
+    # Calcula o atraso
     atraso = (data_devolucao_real - data_devolucao_prevista).days
     
-    # Atualizar disponibilidade no acervo
+    # Atualiza a disponibilidade no acervo
     acervo_biblioteca[nome_livro]["exemplares_disponiveis"] += 1
     acervo_biblioteca[nome_livro]["disponibilidade"] = True
     
-    # Remover empréstimo ativo
+    # Remove o empréstimo ativo
     del emprestimos_ativos[chave_emprestimo]
     
     resultado = {
