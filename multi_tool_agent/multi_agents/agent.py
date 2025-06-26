@@ -1,6 +1,9 @@
 import datetime
 from zoneinfo import ZoneInfo
 from google.adk.agents import Agent
+
+from multi_tool_agent.multi_agents.emprestimo import obter_acervo_do_banco
+from .busca import buscar_livro
 #CRIAR AMBIENTE VIRTUAL .VENV
 def get_weather(city: str) -> dict: #Descrever para a IA o que ela deve fazer
     """Retrieves the current weather report for a specified city.
@@ -53,35 +56,6 @@ def get_current_time(city: str) -> dict:
     )
     return {"status": "success", "report": report}
 
-def buscar_livro(nome_livro: str, nome_usuario: str) -> dict:
-    """
-    Busca os dados de um livro na biblioteca. utilizando o nome do livro fornecido pelo usuário.
-    Args:
-        nome_livro (str): O nome do livro a ser buscado.
-        nome_usuario (str): O nome do usuário que está fazendo a busca.
-    Returns:
-        dict: Nome do livro, autor do livro, disponibilidade do livro na biblioteca.   
-    """
-    # Simulação de busca em um acervo de livros
-    acervo = {
-        "O Senhor dos Anéis": {"autor": "J.R.R. Tolkien", "disponibilidade": True},
-        "1984": {"autor": "George Orwell", "disponibilidade": False},
-        "Dom Casmurro": {"autor": "Machado de Assis", "disponibilidade": True},
-    }
-
-    livro = acervo.get(nome_livro)
-    
-    if livro:
-        return {
-            "nome_livro": nome_livro,
-            "autor": livro["autor"],
-            "disponibilidade": livro["disponibilidade"]
-        }
-    else:
-        return {
-            "error_message": f"Livro '{nome_livro}' não encontrado no acervo."
-        }
-
 
 
 root_agent = Agent(
@@ -93,8 +67,8 @@ root_agent = Agent(
     instruction=(
         "Você é um agente especializado em fornecer informações de todo o acervo de livros da biblioteca"+
         "Primeiramente voce irá questionar o nome do usuário e questionar o livro que ele busca"+
-        "Em seguida você irá buscar o livro no acervo e retornar a informação se o livro está disponível ou não"
-        
+        "Em seguida você irá buscar o livro no acervo e retornar a informação se o livro está disponível ou não"+
+        "Em caso de erro, você irá retornar uma mensagem de erro informando o que aconteceu de forma detalhada e concisa, como uma estrutura de try catch faria, qual foi o motivo do erro e etc."
     ),
-    tools=[buscar_livro],
+    tools=[buscar_livro,obter_acervo_do_banco],
 )
