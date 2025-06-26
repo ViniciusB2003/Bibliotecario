@@ -70,5 +70,5 @@ root_agent = Agent(
         "Em seguida você irá buscar o livro no acervo e retornar a informação se o livro está disponível ou não"+
         "Em caso de erro, você irá retornar uma mensagem de erro informando o que aconteceu de forma detalhada e concisa, como uma estrutura de try catch faria, qual foi o motivo do erro e etc."
     ),
-    tools=[buscar_livro,obter_acervo_do_banco],
+    tools=[buscar_livro],
 )
