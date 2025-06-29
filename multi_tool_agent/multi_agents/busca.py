@@ -1,20 +1,13 @@
-
-def buscar_livro(titulo: str) -> dict:
+def buscar_livro(titulo: str = "", autor: str = "") -> dict:
     """
     Busca os dados de um livro na biblioteca a partir do banco SQLite.
 
     Args:
         titulo (str): O título do livro a ser procurado.
+        autor (str): O autor do livro a ser procurado.
 
     Returns:
-        dict: {
-             titulo (str): Título do livro,
-             autor (str): Autor do livro,
-             disponibilidade (bool): Indica se o livro está disponível,
-             exemplares_disponiveis (int): Número de exemplares disponíveis
-        } || dict: {
-             error_message (str): Mensagem de erro caso o livro não seja encontrado ou ocorra um erro na busca.
-             }
+        dict: Dados do livro ou mensagem de erro.
     """
     try:
         import sqlite3
@@ -22,12 +15,28 @@ def buscar_livro(titulo: str) -> dict:
         conn = sqlite3.connect("./multi_agents/biblioteca.db")
         cursor = conn.cursor()
 
-        # Consulta o livro ignorando letras maiúsculas/minúsculas
-        cursor.execute("""
-            SELECT titulo, autor, disponibilidade, exemplares_disponiveis
-            FROM livros
-            WHERE LOWER(titulo) = LOWER(?)
-        """, (titulo,))
+        if titulo and autor:
+            cursor.execute("""
+                SELECT titulo, autor, disponibilidade, exemplares_disponiveis
+                FROM livros
+                WHERE LOWER(titulo) = LOWER(?) AND LOWER(autor) = LOWER(?)
+            """, (titulo, autor))
+        elif titulo:
+            cursor.execute("""
+                SELECT titulo, autor, disponibilidade, exemplares_disponiveis
+                FROM livros
+                WHERE LOWER(titulo) = LOWER(?)
+            """, (titulo,))
+        elif autor:
+            cursor.execute("""
+                SELECT titulo, autor, disponibilidade, exemplares_disponiveis
+                FROM livros
+                WHERE LOWER(autor) = LOWER(?)
+            """, (autor,))
+        else:
+            return {
+                "error_message": "É necessário informar pelo menos o título ou o autor do livro."
+            }
 
         resultado = cursor.fetchone()
         conn.close()
@@ -42,7 +51,7 @@ def buscar_livro(titulo: str) -> dict:
             }
         else:
             return {
-                "error_message": f"Livro '{titulo}' não encontrado no acervo."
+                "error_message": "Livro não encontrado no acervo."
             }
 
     except Exception as e:
