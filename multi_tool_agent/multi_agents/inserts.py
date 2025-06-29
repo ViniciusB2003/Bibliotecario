@@ -6,10 +6,10 @@ cursor = conn.cursor()
  
 # Atualizar todos os livros existentes com os novos valores
 cursor.execute("""
-    UPDATE livros SET exemplares_disponiveis = 5 where id = 3
+    delete from emprestimos
 """)
  
 conn.commit()
 conn.close()
 
-print("Livro atualizado com sucesso!")
+print("Empréstimos deletados com sucesso!")

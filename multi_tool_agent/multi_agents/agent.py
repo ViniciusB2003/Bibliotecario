@@ -7,6 +7,7 @@ from google.adk.agents import LlmAgent, BaseAgent
 from .busca import buscar_livro
 from .emprestimo import (realizar_emprestimo,devolver_livro,consultar_emprestimos_usuario, listar_acervo_disponivel)
 from .emprestimo import agente_emprestimo
+from .sugestor import agente_sugestor
 #CRIAR AMBIENTE VIRTUAL .VENV
 
 def usuario_existe(nome_usuario: str) -> dict:
@@ -72,7 +73,7 @@ root_agent = Agent(
         "Em seguida você irá buscar o livro no acervo e retornar a informação se o livro está disponível ou não"+
         "Em caso de erro, você irá retornar uma mensagem de erro informando o que aconteceu de forma detalhada e concisa, como uma estrutura de try catch faria, qual foi o motivo do erro e etc."
     ),
-    sub_agents=[agente_emprestimo],
+    sub_agents=[agente_emprestimo,agente_sugestor],
     tools=[buscar_livro,usuario_existe],
 )
 
