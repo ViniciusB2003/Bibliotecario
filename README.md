@@ -31,7 +31,7 @@ multi_tool_agent/
 
 │ ├── emprestimo.py # Tool: empréstimo de livros
 
-│ ├── recomendacao.py # Tool: recomendação de livros
+│ ├── sugestor.py # Tool: recomendação de livros
 
 │ ├── biblioteca.db # Banco de dados com os livros
 
